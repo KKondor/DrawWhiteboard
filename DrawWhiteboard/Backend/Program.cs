@@ -1,7 +1,6 @@
-
 using DrawWhiteboard.Backend.BackendHub;
 
-namespace DrawWhiteboard
+namespace DrawWhiteboard.Backend
 {
     public class Program
     {
@@ -10,6 +9,7 @@ namespace DrawWhiteboard
             var MyAllowedSpecificOrigins = "_myAllowSpecificOrigins";
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddSingleton<StrokeStore>();
+            builder.Services.AddSignalR();
             builder.Services.AddCors(opt =>
             {
                 opt.AddPolicy(name: MyAllowedSpecificOrigins,
