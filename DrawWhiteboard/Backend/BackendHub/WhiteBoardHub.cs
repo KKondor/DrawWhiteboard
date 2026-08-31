@@ -12,13 +12,14 @@ namespace DrawWhiteboard.Backend.BackendHub
             _strokeStoreSingleton = strokeStoreSingleton;
         }
 
-        public void SendPoint(Point point, Stroke stroke)
+        public async Task SendPoint(Point point)
         {
-
+            _strokeStoreSingleton.AddPoint(point);
+            await Clients.Others.SendAsync("ReceivePoint", point);
         }
-        public List<Stroke> GetStrokeHistory()
+        public async Task<List<Stroke>> GetStrokeHistory()
         {
-            return new List<Stroke>();
+            return _strokeStoreSingleton.GetAllStrokes();
         }
     }
 }
