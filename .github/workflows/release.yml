@@ -84,6 +84,12 @@ jobs:
         working-directory: DrawWhiteboard/frontend
         run: npm ci
 
+      - name: Write production env file
+        working-directory: DrawWhiteboard/frontend
+        run: |
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env.production
+          echo "VITE_APP_VERSION=${{ needs.release.outputs.version }}" >> .env.production
+
       - name: Build Tauri
         uses: tauri-apps/tauri-action@v0
         env:
