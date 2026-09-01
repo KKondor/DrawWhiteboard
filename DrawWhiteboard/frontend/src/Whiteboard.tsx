@@ -24,6 +24,7 @@ export default function Whiteboard() {
   const [color, setColor] = useState("#000000");
   const [thickness, setThickness] = useState(3);
   const [isErasing, setIsErasing] = useState(false);
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
   const activeColor = isErasing ? "#ffffff" : color;
   const activeThickness = thickness;
@@ -84,35 +85,44 @@ export default function Whiteboard() {
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
+    const displayPos = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
     };
+
+    const canvasPos = {
+      x: displayPos.x * scaleX,
+      y: displayPos.y * scaleY,
+    };
+
+    return { canvasPos, displayPos };
   }
 
   function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement>) {
     setIsDrawing(true);
-    lastPoint.current = getMousePos(e);
+    const { canvasPos } = getMousePos(e);
+    lastPoint.current = canvasPos;
     currentStrokeId.current = crypto.randomUUID();
     pointIdCounter.current = 0;
   }
 
   function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
+    const { canvasPos, displayPos } = getMousePos(e);
+    setCursorPos(displayPos);
+
     if (!isDrawing || !lastPoint.current) return;
 
     const ctx = getContext();
     if (!ctx) return;
 
-    const currentPoint = getMousePos(e);
+    drawSegment(lastPoint.current, canvasPos, activeColor, activeThickness);
 
-    drawSegment(lastPoint.current, currentPoint, activeColor, activeThickness);
-
-    lastPoint.current = currentPoint;
+    lastPoint.current = canvasPos;
 
     const now = Date.now();
     if (now - lastSentTime.current >= 40) { // ~25 times/second
       lastSentTime.current = now;
-      sendPointToServer(currentPoint);
+      sendPointToServer(canvasPos);
     }
   }
 
@@ -151,7 +161,7 @@ export default function Whiteboard() {
   }
 
   return (
-      <>
+      <div className={styles.rootContainer}>
         <div className={styles.toolbar}>
           <input
               type="color"
@@ -174,15 +184,37 @@ export default function Whiteboard() {
             Eraser
           </button>
         </div>
-        <canvas className={styles.canvas}
-            ref={canvasRef}
-            width={800}
-            height={600}
-            style={{border: "1px solid black", touchAction: "none"}}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}/>
-      </>
+        <div className={styles.canvasOuter}>
+          <div className={styles.canvasWrapper}>
+            <canvas
+                className={styles.canvas}
+                ref={canvasRef}
+                width={1200}
+                height={800}
+                style={{ touchAction: "none" }}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={() => {
+                  handleMouseUp();
+                  setCursorPos(null);
+                }}
+            />
+          {cursorPos && (
+              <div
+                  className={styles.cursorPreview}
+                  style={{
+                    left: cursorPos.x,
+                    top: cursorPos.y,
+                    width: activeThickness,
+                    height: activeThickness,
+                    backgroundColor: isErasing ? "transparent" : activeColor,
+                    borderColor: isErasing ? "gray" : "white",
+                  }}
+              />
+              )}
+        </div>
+        </div>
+      </div>
   );
 }

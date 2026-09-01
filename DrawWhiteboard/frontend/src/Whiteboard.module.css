@@ -1,5 +1,28 @@
+.rootContainer{
+    width: fit-content;
+    max-width: 100%;
+}
+
+.canvasOuter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.canvasWrapper {
+    position: relative;
+    width: fit-content;
+    line-height: 0;
+}
+
 .canvas {
-    background: white;
+    border: none;
+    border-radius: 8px;
+    background-color: white;
+    max-width: 90vw;
+    height: auto;
+    display: block;
 }
 
 .toolbar {
@@ -54,4 +77,12 @@
     background-color: #6366f1;
     color: white;
     border-color: #6366f1;
+}
+
+.cursorPreview {
+    position: absolute;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
 }
