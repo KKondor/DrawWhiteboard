@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { HubConnectionBuilder, HubConnection } from "@microsoft/signalr";
 import styles from "./Whiteboard.module.css";
+import {useDelayedFlag} from "./hooks/useDelayedFlag.ts";
 
 interface RemotePoint {
   pointId: number;
@@ -25,11 +26,12 @@ export default function Whiteboard() {
   const [thickness, setThickness] = useState(3);
   const [isErasing, setIsErasing] = useState(false);
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "failed">("connecting");
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
   const activeColor = isErasing ? "#ffffff" : color;
   const activeThickness = thickness;
 
-
+  const showColdStartMessage = useDelayedFlag(connectionStatus === "connecting", 3000);
   const connectionRef = useRef<HubConnection | null>(null);
   const currentStrokeId = useRef<string | null>(null);
   const pointIdCounter = useRef(0);
@@ -52,8 +54,15 @@ export default function Whiteboard() {
       lastPointByStroke.current.set(point.strokeId, { x: point.x, y: point.y });
     });
 
+    connection.onreconnecting(() => setConnectionStatus("connecting"));
+    connection.onreconnected(() => setConnectionStatus("connected"));
+    connection.onclose(() => setConnectionStatus("failed"));
+
     connection.start()
-        .then(() => connection.invoke("GetStrokeHistory"))
+        .then(() => {
+          setConnectionStatus("connected");
+          return connection.invoke("GetStrokeHistory");
+        })
         .then((strokes: RemoteStroke[]) => {
           for (const stroke of strokes) {
             let prev: { x: number; y: number } | null = null;
@@ -66,7 +75,10 @@ export default function Whiteboard() {
             }
           }
         })
-        .catch((err) => console.error("SignalR setup failed:", err));
+        .catch((err) => {
+          console.error("SignalR setup failed:", err);
+          setConnectionStatus("failed");
+        });
 
     return () => {
       connection.stop();
@@ -99,6 +111,7 @@ export default function Whiteboard() {
   }
 
   function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement>) {
+    if (connectionStatus !== "connected") return;
     setIsDrawing(true);
     const { canvasPos } = getMousePos(e);
     lastPoint.current = canvasPos;
@@ -186,6 +199,17 @@ export default function Whiteboard() {
         </div>
         <div className={styles.canvasOuter}>
           <div className={styles.canvasWrapper}>
+            {connectionStatus !== "connected" && (
+                <div className={styles.connectionOverlay}>
+                  <div className={styles.spinner} />
+                  <p>{connectionStatus === "failed" ? "Couldn't connect to the server. Refresh to try again." : "Connecting..."}</p>
+                  {showColdStartMessage && connectionStatus === "connecting" && (
+                      <p className={styles.coldStartMessage}>
+                        The server may be waking up from sleep, this can take up to a minute.
+                      </p>
+                  )}
+                </div>
+            )}
             <canvas
                 className={styles.canvas}
                 ref={canvasRef}
