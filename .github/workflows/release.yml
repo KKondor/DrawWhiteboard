@@ -102,6 +102,18 @@ jobs:
       
           echo "VITE_API_URL is configured"
 
+      - name: Set Tauri app version
+        working-directory: DrawWhiteboard/frontend/src-tauri
+        shell: bash
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = 'tauri.conf.json';
+            const config = JSON.parse(fs.readFileSync(path, 'utf8'));
+            config.version = '${{ needs.release.outputs.version }}';
+            fs.writeFileSync(path, JSON.stringify(config, null, 2));
+          "
+
       - name: Build Tauri
         uses: tauri-apps/tauri-action@v0
         env:
