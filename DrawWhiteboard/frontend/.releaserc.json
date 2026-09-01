@@ -4,12 +4,6 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
-    [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "echo \"VITE_APP_VERSION=${nextRelease.version}\" >> .env.production"
-      }
-    ],
     "@semantic-release/github",
     "@semantic-release/git"
   ]
