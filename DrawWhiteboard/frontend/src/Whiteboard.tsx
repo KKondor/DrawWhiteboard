@@ -201,8 +201,16 @@ export default function Whiteboard() {
           <div className={styles.canvasWrapper}>
             {connectionStatus !== "connected" && (
                 <div className={styles.connectionOverlay}>
-                  <div className={styles.spinner} />
-                  <p>{connectionStatus === "failed" ? "Couldn't connect to the server." : "Connecting..."}</p>
+                  {connectionStatus === "connecting" && (
+                      <div className={styles.spinner} />
+                  )}
+
+                  <p>
+                    {connectionStatus === "failed"
+                        ? "Couldn't connect to the server."
+                        : "Connecting..."}
+                  </p>
+
                   {showColdStartMessage && connectionStatus === "connecting" && (
                       <p className={styles.coldStartMessage}>
                         The server may be waking up from sleep, this can take up to a minute.
