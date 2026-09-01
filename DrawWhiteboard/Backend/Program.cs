@@ -10,16 +10,18 @@ namespace DrawWhiteboard.Backend
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddSingleton<StrokeStore>();
             builder.Services.AddSignalR();
+            var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
             builder.Services.AddCors(opt =>
             {
                 opt.AddPolicy(name: MyAllowedSpecificOrigins,
-                                  policy =>
-                                  {
-                                      policy.WithOrigins(builder.Configuration.GetConnectionString("DefaultFrontEnd"))
-                                      .AllowAnyHeader()
-                                      .AllowAnyMethod()
-                                      .AllowCredentials();
-                                  });
+                    policy =>
+                    {
+                        policy.WithOrigins(allowedOrigins)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
             });
             var app = builder.Build();
             app.UseCors(MyAllowedSpecificOrigins);
