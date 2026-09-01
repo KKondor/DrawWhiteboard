@@ -133,7 +133,7 @@ export default function Whiteboard() {
     lastPoint.current = canvasPos;
 
     const now = Date.now();
-    if (now - lastSentTime.current >= 40) { // ~25 times/second
+    if (now - lastSentTime.current >= 20) {
       lastSentTime.current = now;
       sendPointToServer(canvasPos);
     }
