@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { HubConnectionBuilder, HubConnection } from "@microsoft/signalr";
+import styles from "./Whiteboard.module.css";
 
 interface RemotePoint {
   pointId: number;
@@ -20,7 +21,13 @@ interface RemoteStroke {
 export default function Whiteboard() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [color, setColor] = useState("#000000");
+  const [thickness, setThickness] = useState(3);
+  const [isErasing, setIsErasing] = useState(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
+  const activeColor = isErasing ? "#ffffff" : color;
+  const activeThickness = thickness;
+
 
   const connectionRef = useRef<HubConnection | null>(null);
   const currentStrokeId = useRef<string | null>(null);
@@ -98,7 +105,7 @@ export default function Whiteboard() {
 
     const currentPoint = getMousePos(e);
 
-    drawSegment(lastPoint.current, currentPoint, "black", 3);
+    drawSegment(lastPoint.current, currentPoint, activeColor, activeThickness);
 
     lastPoint.current = currentPoint;
 
@@ -123,8 +130,8 @@ export default function Whiteboard() {
       x: point.x,
       y: point.y,
       strokeId: currentStrokeId.current,
-      color: "black",
-      thickness: 3,
+      color: activeColor,
+      thickness: activeThickness,
     };
 
     connection.invoke("SendPoint", payload).catch((err) => console.error("Send failed:", err));
@@ -144,15 +151,38 @@ export default function Whiteboard() {
   }
 
   return (
-      <canvas
-          ref={canvasRef}
-          width={800}
-          height={600}
-          style={{ border: "1px solid black", touchAction: "none" }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-      />
+      <>
+        <div className={styles.toolbar}>
+          <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              disabled={isErasing}
+              className={styles.colorPicker}/>
+          <input
+              type="range"
+              min={1}
+              max={30}
+              value={thickness}
+              onChange={(e) => setThickness(Number(e.target.value))}
+              className={styles.thicknessSlider}/>
+          <span className={styles.thicknessLabel}>{thickness}px</span>
+          <button
+              onClick={() => setIsErasing((prev) => !prev)}
+              className={isErasing ? styles.eraserActive : styles.eraserButton}
+          >
+            Eraser
+          </button>
+        </div>
+        <canvas className={styles.canvas}
+            ref={canvasRef}
+            width={800}
+            height={600}
+            style={{border: "1px solid black", touchAction: "none"}}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}/>
+      </>
   );
 }
