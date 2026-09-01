@@ -90,6 +90,15 @@ jobs:
           echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env.production
           echo "VITE_APP_VERSION=${{ needs.release.outputs.version }}" >> .env.production
 
+      - name: Verify env file was populated
+        working-directory: DrawWhiteboard/frontend
+        run: |
+          if grep -q "VITE_API_URL=$" .env.production; then
+            echo "::error::VITE_API_URL is empty!"
+            exit 1
+          fi
+          echo "VITE_API_URL is set (value hidden)"
+
       - name: Build Tauri
         uses: tauri-apps/tauri-action@v0
         env:
