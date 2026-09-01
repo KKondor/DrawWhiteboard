@@ -22,6 +22,7 @@ namespace DrawWhiteboard.Backend
                                   });
             });
             var app = builder.Build();
+            app.UseCors(MyAllowedSpecificOrigins);
             app.MapHub<WhiteBoardHub>("/whiteboardhub");
             app.Run();
         }
