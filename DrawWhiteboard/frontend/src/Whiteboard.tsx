@@ -202,7 +202,7 @@ export default function Whiteboard() {
             {connectionStatus !== "connected" && (
                 <div className={styles.connectionOverlay}>
                   <div className={styles.spinner} />
-                  <p>{connectionStatus === "failed" ? "Couldn't connect to the server. Refresh to try again." : "Connecting..."}</p>
+                  <p>{connectionStatus === "failed" ? "Couldn't connect to the server." : "Connecting..."}</p>
                   {showColdStartMessage && connectionStatus === "connecting" && (
                       <p className={styles.coldStartMessage}>
                         The server may be waking up from sleep, this can take up to a minute.

@@ -8,9 +8,9 @@ namespace DrawWhiteboard.Backend
         {
             var MyAllowedSpecificOrigins = "_myAllowSpecificOrigins";
             var builder = WebApplication.CreateBuilder(args);
+            var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
             builder.Services.AddSingleton<StrokeStore>();
             builder.Services.AddSignalR();
-            var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 
             builder.Services.AddCors(opt =>
             {
