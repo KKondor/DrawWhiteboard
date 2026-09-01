@@ -1,6 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { HubConnectionBuilder, HubConnection } from "@microsoft/signalr";
 
+interface RemotePoint {
+  pointId: number;
+  x: number;
+  y: number;
+  strokeId: string;
+  color: string;
+  thickness: number;
+}
+
+interface RemoteStroke {
+  strokeId: string;
+  color: string;
+  thickness: number;
+  points: RemotePoint[];
+}
+
 export default function Whiteboard() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -10,6 +26,7 @@ export default function Whiteboard() {
   const currentStrokeId = useRef<string | null>(null);
   const pointIdCounter = useRef(0);
   const lastSentTime = useRef(0);
+  const lastPointByStroke = useRef<Map<string, { x: number; y: number }>>(new Map());
 
   useEffect(() => {
     const connection = new HubConnectionBuilder()
@@ -19,7 +36,29 @@ export default function Whiteboard() {
 
     connectionRef.current = connection;
 
-    connection.start().catch((err) => console.error("SignalR connection failed:", err));
+    connection.on("ReceivePoint", (point: RemotePoint) => {
+      const lastForStroke = lastPointByStroke.current.get(point.strokeId);
+      if (lastForStroke) {
+        drawSegment(lastForStroke, { x: point.x, y: point.y }, point.color, point.thickness);
+      }
+      lastPointByStroke.current.set(point.strokeId, { x: point.x, y: point.y });
+    });
+
+    connection.start()
+        .then(() => connection.invoke("GetStrokeHistory"))
+        .then((strokes: RemoteStroke[]) => {
+          for (const stroke of strokes) {
+            let prev: { x: number; y: number } | null = null;
+            for (const point of stroke.points) {
+              const current = { x: point.x, y: point.y };
+              if (prev) {
+                drawSegment(prev, current, stroke.color, stroke.thickness);
+              }
+              prev = current;
+            }
+          }
+        })
+        .catch((err) => console.error("SignalR setup failed:", err));
 
     return () => {
       connection.stop();
@@ -59,13 +98,7 @@ export default function Whiteboard() {
 
     const currentPoint = getMousePos(e);
 
-    ctx.beginPath();
-    ctx.moveTo(lastPoint.current.x, lastPoint.current.y);
-    ctx.lineTo(currentPoint.x, currentPoint.y);
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 3;
-    ctx.lineCap = "round";
-    ctx.stroke();
+    drawSegment(lastPoint.current, currentPoint, "black", 3);
 
     lastPoint.current = currentPoint;
 
@@ -95,6 +128,19 @@ export default function Whiteboard() {
     };
 
     connection.invoke("SendPoint", payload).catch((err) => console.error("Send failed:", err));
+  }
+
+  function drawSegment(from: { x: number; y: number }, to: { x: number; y: number }, color: string, thickness: number) {
+    const ctx = getContext();
+    if (!ctx) return;
+
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = thickness;
+    ctx.lineCap = "round";
+    ctx.stroke();
   }
 
   return (
