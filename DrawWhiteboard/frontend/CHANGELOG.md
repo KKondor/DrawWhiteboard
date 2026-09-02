@@ -1,3 +1,11 @@
+## [1.1.1](https://github.com/KKondor/DrawWhiteboard/compare/v1.1.0...v1.1.1) (2026-09-02)
+
+
+### Bug Fixes
+
+* fixed touchscreen and other alternative control methods not working ([3e97844](https://github.com/KKondor/DrawWhiteboard/commit/3e97844067ba3c823cccb12e710da541045edda9))
+* fixed touchscreen and other alternative control methods not working ([8b420d5](https://github.com/KKondor/DrawWhiteboard/commit/8b420d5ad14a4dd03fda1ddb78b085d61589e337))
+
 # [1.1.0](https://github.com/KKondor/DrawWhiteboard/compare/v1.0.0...v1.1.0) (2026-09-02)
 
 
