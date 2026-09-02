@@ -17,8 +17,7 @@
 }
 
 .canvas {
-    border: none;
-    border-radius: 8px;
+    border: 0.5rem solid burlywood;
     background-color: white;
     max-width: 90vw;
     height: auto;
