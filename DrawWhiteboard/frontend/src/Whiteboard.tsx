@@ -160,6 +160,29 @@ export default function Whiteboard() {
     connection.invoke("SendPoint", payload).catch((err) => console.error("Send failed:", err));
   }
 
+  function handleExport() {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const exportCanvas = document.createElement("canvas");
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height;
+
+    const exportCtx = exportCanvas.getContext("2d");
+    if (!exportCtx) return;
+
+    exportCtx.fillStyle = "white";
+    exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    exportCtx.drawImage(canvas, 0, 0);
+
+    const dataUrl = exportCanvas.toDataURL("image/png");
+
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `whiteboard-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.png`;
+    link.click();
+  }
+
   function drawSegment(from: { x: number; y: number }, to: { x: number; y: number }, color: string, thickness: number) {
     const ctx = getContext();
     if (!ctx) return;
@@ -195,6 +218,9 @@ export default function Whiteboard() {
               className={isErasing ? styles.eraserActive : styles.eraserButton}
           >
             Eraser
+          </button>
+          <button onClick={handleExport} className={styles.exportButton}>
+            Download PNG
           </button>
         </div>
         <div className={styles.canvasOuter}>

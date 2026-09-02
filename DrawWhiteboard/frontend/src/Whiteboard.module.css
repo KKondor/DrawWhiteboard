@@ -79,6 +79,20 @@
     border-color: #6366f1;
 }
 
+.exportButton {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #2e323a;
+    background-color: transparent;
+    color: #e8e9eb;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.exportButton:hover {
+    background-color: #262a31;
+}
+
 .cursorPreview {
     position: absolute;
     border: 1px solid rgba(255, 255, 255, 0.6);
