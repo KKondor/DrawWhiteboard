@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/KKondor/DrawWhiteboard/compare/v1.0.0...v1.1.0) (2026-09-02)
+
+
+### Features
+
+* added a Download PNG button that allows you to export the canvas ([31e2c1f](https://github.com/KKondor/DrawWhiteboard/commit/31e2c1f7fda810f65cacbba022a62cbca3e5991e))
+
 # 1.0.0 (2026-09-01)
 
 
