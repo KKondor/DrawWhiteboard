@@ -90,7 +90,7 @@ export default function Whiteboard() {
     return canvas.getContext("2d");
   }
 
-  function getMousePos(e: React.MouseEvent<HTMLCanvasElement>) {
+  function getMousePos(e: React.PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
 
@@ -110,8 +110,11 @@ export default function Whiteboard() {
     return { canvasPos, displayPos };
   }
 
-  function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement>) {
+  function handlePointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
     if (connectionStatus !== "connected") return;
+    const canvas = canvasRef.current;
+    canvas?.setPointerCapture(e.pointerId);
+
     setIsDrawing(true);
     const { canvasPos } = getMousePos(e);
     lastPoint.current = canvasPos;
@@ -119,7 +122,7 @@ export default function Whiteboard() {
     pointIdCounter.current = 0;
   }
 
-  function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
+  function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
     const { canvasPos, displayPos } = getMousePos(e);
     setCursorPos(displayPos);
 
@@ -139,7 +142,7 @@ export default function Whiteboard() {
     }
   }
 
-  function handleMouseUp() {
+  function handlePointerUp() {
     setIsDrawing(false);
     lastPoint.current = null;
   }
@@ -250,11 +253,12 @@ export default function Whiteboard() {
                 width={1200}
                 height={800}
                 style={{ touchAction: "none" }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={() => {
-                  handleMouseUp();
+                onMouseDown={handlePointerDown}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={() => {
+                  handlePointerUp();
                   setCursorPos(null);
                 }}
             />
