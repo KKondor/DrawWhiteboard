@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { HubConnectionBuilder, HubConnection } from "@microsoft/signalr";
 import styles from "./Whiteboard.module.css";
 import {useDelayedFlag} from "./hooks/useDelayedFlag.ts";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 
 interface RemotePoint {
   pointId: number;
@@ -207,7 +209,7 @@ export default function Whiteboard() {
     connection.invoke("SendPoint", payload).catch((err) => console.error("Send failed:", err));
   }
 
-  function handleExport() {
+  async function handleExport() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -222,12 +224,29 @@ export default function Whiteboard() {
     exportCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
     exportCtx.drawImage(canvas, 0, 0);
 
+    const filename = `whiteboard-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.png`;
     const dataUrl = exportCanvas.toDataURL("image/png");
 
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = `whiteboard-${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.png`;
-    link.click();
+    const isTauri = "__TAURI_INTERNALS__" in window;
+
+    if (isTauri) {
+      const base64 = dataUrl.split(",")[1];
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+
+      const path = await save({
+        defaultPath: filename,
+        filters: [{ name: "PNG Image", extensions: ["png"] }],
+      });
+
+      if (path) {
+        await writeFile(path, bytes);
+      }
+    } else {
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = filename;
+      link.click();
+    }
   }
 
   function drawSegment(from: { x: number; y: number }, to: { x: number; y: number }, color: string, thickness: number) {
