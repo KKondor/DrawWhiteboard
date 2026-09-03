@@ -279,7 +279,6 @@ export default function Whiteboard() {
                 width={1200}
                 height={800}
                 style={{ touchAction: "none" }}
-                onMouseDown={handlePointerDown}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
