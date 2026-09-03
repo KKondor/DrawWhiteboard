@@ -1,3 +1,16 @@
+# [1.2.0](https://github.com/KKondor/DrawWhiteboard/compare/v1.1.1...v1.2.0) (2026-09-03)
+
+
+### Bug Fixes
+
+* removed leftover onMouseDown ([c23970f](https://github.com/KKondor/DrawWhiteboard/commit/c23970f20af742a5e602b2c1a5e395fc0529375a))
+
+
+### Features
+
+* added backend functions to handle undo ([a6ef00f](https://github.com/KKondor/DrawWhiteboard/commit/a6ef00f7fb22c2d6ed3d11bbcf4b3ea0d0f59ddb))
+* added keybind for toggling eraser ([b6653ab](https://github.com/KKondor/DrawWhiteboard/commit/b6653ab562ece7b1f9b34bc81d4b7954bafe915c))
+
 ## [1.1.1](https://github.com/KKondor/DrawWhiteboard/compare/v1.1.0...v1.1.1) (2026-09-02)
 
 
