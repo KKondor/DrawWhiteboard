@@ -39,6 +39,19 @@ export default function Whiteboard() {
   const lastPointByStroke = useRef<Map<string, { x: number; y: number }>>(new Map());
 
   useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === "e" || e.key === "E") {
+        setIsErasing((prev) => !prev);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
     const connection = new HubConnectionBuilder()
         .withUrl(`${import.meta.env.VITE_API_URL}/whiteboardhub`)
         .withAutomaticReconnect()
@@ -202,29 +215,42 @@ export default function Whiteboard() {
   return (
       <div className={styles.rootContainer}>
         <div className={styles.toolbar}>
-          <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              disabled={isErasing}
-              className={styles.colorPicker}/>
-          <input
-              type="range"
-              min={1}
-              max={30}
-              value={thickness}
-              onChange={(e) => setThickness(Number(e.target.value))}
-              className={styles.thicknessSlider}/>
-          <span className={styles.thicknessLabel}>{thickness}px</span>
-          <button
-              onClick={() => setIsErasing((prev) => !prev)}
-              className={isErasing ? styles.eraserActive : styles.eraserButton}
-          >
-            Eraser
-          </button>
-          <button onClick={handleExport} className={styles.exportButton}>
-            Download PNG
-          </button>
+          <div className={styles.toolButtonGroup}>
+            <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                disabled={isErasing}
+                className={styles.colorPicker} />
+            <span className={styles.keybindHint}>&nbsp;</span>
+          </div>
+
+          <div className={styles.toolButtonGroup}>
+            <input
+                type="range"
+                min={1}
+                max={30}
+                value={thickness}
+                onChange={(e) => setThickness(Number(e.target.value))}
+                className={styles.thicknessSlider} />
+            <span className={styles.keybindHint}>{thickness}px</span>
+          </div>
+
+          <div className={styles.toolButtonGroup}>
+            <button
+                onClick={() => setIsErasing((prev) => !prev)}
+                className={isErasing ? styles.eraserActive : styles.eraserButton}>
+              Eraser
+            </button>
+            <span className={styles.keybindHint}>E</span>
+          </div>
+
+          <div className={styles.toolButtonGroup}>
+            <button onClick={handleExport} className={styles.exportButton}>
+              Download PNG
+            </button>
+            <span className={styles.keybindHint}>&nbsp;</span>
+          </div>
         </div>
         <div className={styles.canvasOuter}>
           <div className={styles.canvasWrapper}>
