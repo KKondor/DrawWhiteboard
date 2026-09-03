@@ -21,5 +21,10 @@ namespace DrawWhiteboard.Backend.BackendHub
         {
             return _strokeStoreSingleton.GetAllStrokes();
         }
+        public async Task UndoLastStroke(Guid strokeId)
+        {
+            _strokeStoreSingleton.RemoveStroke(strokeId);
+            await Clients.All.SendAsync("StrokeRemoved", strokeId);
+        }
     }
 }

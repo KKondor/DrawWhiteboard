@@ -20,5 +20,10 @@ namespace DrawWhiteboard.Backend.BackendHub
         }
 
         public List<Stroke> GetAllStrokes() => _strokes;
+
+        public void RemoveStroke(Guid strokeId)
+        {
+            _strokes.RemoveAll(s => s.StrokeId == strokeId);
+        }
     }
 }
