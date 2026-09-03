@@ -54,6 +54,10 @@ export default function Whiteboard() {
         e.preventDefault();
         handleUndo();
       }
+      if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) {
+        e.preventDefault();
+        handleExport();
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown);
@@ -329,7 +333,7 @@ export default function Whiteboard() {
             <button onClick={handleExport} className={styles.exportButton}>
               Download PNG
             </button>
-            <span className={styles.keybindHint}>&nbsp;</span>
+            <span className={styles.keybindHint}>Ctrl+S</span>
           </div>
         </div>
         <div className={styles.canvasOuter}>
