@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/KKondor/DrawWhiteboard/compare/v1.2.0...v1.3.0) (2026-09-03)
+
+
+### Features
+
+* added undo button ([bdae5f9](https://github.com/KKondor/DrawWhiteboard/commit/bdae5f9ac47054dc92a387bd0c78db0c915d4e49))
+
 # [1.2.0](https://github.com/KKondor/DrawWhiteboard/compare/v1.1.1...v1.2.0) (2026-09-03)
 
 
