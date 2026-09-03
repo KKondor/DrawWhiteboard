@@ -1,3 +1,15 @@
+# [1.4.0](https://github.com/KKondor/DrawWhiteboard/compare/v1.3.0...v1.4.0) (2026-09-03)
+
+
+### Bug Fixes
+
+* fixed the download png button not working in the desktop app ([9211d46](https://github.com/KKondor/DrawWhiteboard/commit/9211d4626311351593eeba78a5b012c7c04829be))
+
+
+### Features
+
+* added a keybind to download png ([75f6eee](https://github.com/KKondor/DrawWhiteboard/commit/75f6eee773a9f064753b16fcf307eb0a46cd97ab))
+
 # [1.3.0](https://github.com/KKondor/DrawWhiteboard/compare/v1.2.0...v1.3.0) (2026-09-03)
 
 
