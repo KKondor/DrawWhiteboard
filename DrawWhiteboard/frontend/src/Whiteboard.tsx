@@ -31,6 +31,9 @@ export default function Whiteboard() {
   const activeColor = isErasing ? "#ffffff" : color;
   const activeThickness = thickness;
 
+  const strokeHistory = useRef<Map<string, RemoteStroke>>(new Map());
+  const [lastOwnStrokeId, setLastOwnStrokeId] = useState<string | null>(null);
+
   const showColdStartMessage = useDelayedFlag(connectionStatus === "connecting", 3000);
   const connectionRef = useRef<HubConnection | null>(null);
   const currentStrokeId = useRef<string | null>(null);
@@ -45,11 +48,15 @@ export default function Whiteboard() {
       if (e.key === "e" || e.key === "E") {
         setIsErasing((prev) => !prev);
       }
+      if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) {
+        e.preventDefault();
+        handleUndo();
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [lastOwnStrokeId]);
 
   useEffect(() => {
     const connection = new HubConnectionBuilder()
@@ -60,11 +67,23 @@ export default function Whiteboard() {
     connectionRef.current = connection;
 
     connection.on("ReceivePoint", (point: RemotePoint) => {
+      let stroke = strokeHistory.current.get(point.strokeId);
+      if (!stroke) {
+        stroke = { strokeId: point.strokeId, color: point.color, thickness: point.thickness, points: [] };
+        strokeHistory.current.set(point.strokeId, stroke);
+      }
+      stroke.points.push(point);
+
       const lastForStroke = lastPointByStroke.current.get(point.strokeId);
       if (lastForStroke) {
         drawSegment(lastForStroke, { x: point.x, y: point.y }, point.color, point.thickness);
       }
       lastPointByStroke.current.set(point.strokeId, { x: point.x, y: point.y });
+    });
+
+    connection.on("StrokeRemoved", (strokeId: string) => {
+      strokeHistory.current.delete(strokeId);
+      redrawAll();
     });
 
     connection.onreconnecting(() => setConnectionStatus("connecting"));
@@ -78,15 +97,9 @@ export default function Whiteboard() {
         })
         .then((strokes: RemoteStroke[]) => {
           for (const stroke of strokes) {
-            let prev: { x: number; y: number } | null = null;
-            for (const point of stroke.points) {
-              const current = { x: point.x, y: point.y };
-              if (prev) {
-                drawSegment(prev, current, stroke.color, stroke.thickness);
-              }
-              prev = current;
-            }
+            strokeHistory.current.set(stroke.strokeId, stroke);
           }
+          redrawAll();
         })
         .catch((err) => {
           console.error("SignalR setup failed:", err);
@@ -132,7 +145,15 @@ export default function Whiteboard() {
     const { canvasPos } = getMousePos(e);
     lastPoint.current = canvasPos;
     currentStrokeId.current = crypto.randomUUID();
+    setLastOwnStrokeId(currentStrokeId.current);
     pointIdCounter.current = 0;
+
+    strokeHistory.current.set(currentStrokeId.current, {
+      strokeId: currentStrokeId.current,
+      color: activeColor,
+      thickness: activeThickness,
+      points: [],
+    });
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -145,6 +166,16 @@ export default function Whiteboard() {
     if (!ctx) return;
 
     drawSegment(lastPoint.current, canvasPos, activeColor, activeThickness);
+
+    const stroke = strokeHistory.current.get(currentStrokeId.current!);
+    stroke?.points.push({
+      pointId: pointIdCounter.current,
+      x: canvasPos.x,
+      y: canvasPos.y,
+      strokeId: currentStrokeId.current!,
+      color: activeColor,
+      thickness: activeThickness,
+    });
 
     lastPoint.current = canvasPos;
 
@@ -212,6 +243,31 @@ export default function Whiteboard() {
     ctx.stroke();
   }
 
+  function redrawAll() {
+    const ctx = getContext();
+    const canvas = canvasRef.current;
+    if (!ctx || !canvas) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const stroke of strokeHistory.current.values()) {
+      let prev: { x: number; y: number } | null = null;
+      for (const point of stroke.points) {
+        const current = { x: point.x, y: point.y };
+        if (prev) drawSegment(prev, current, stroke.color, stroke.thickness);
+        prev = current;
+      }
+    }
+  }
+
+  function handleUndo() {
+    const connection = connectionRef.current;
+    if (!connection || !lastOwnStrokeId) return;
+
+    connection.invoke("UndoLastStroke", lastOwnStrokeId).catch((err) => console.error("Undo failed:", err));
+    setLastOwnStrokeId(null);
+  }
+
   return (
       <div className={styles.rootContainer}>
         <div className={styles.toolbar}>
@@ -244,7 +300,12 @@ export default function Whiteboard() {
             </button>
             <span className={styles.keybindHint}>E</span>
           </div>
-
+          <div className={styles.toolButtonGroup}>
+            <button onClick={handleUndo} disabled={!lastOwnStrokeId} className={styles.undoButton}>
+              Undo
+            </button>
+            <span className={styles.keybindHint}>Ctrl+Z</span>
+          </div>
           <div className={styles.toolButtonGroup}>
             <button onClick={handleExport} className={styles.exportButton}>
               Download PNG

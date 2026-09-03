@@ -78,6 +78,25 @@
     border-color: #6366f1;
 }
 
+.undoButton {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #2e323a;
+    background-color: transparent;
+    color: #e8e9eb;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.undoButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.undoButton:hover:not(:disabled) {
+    background-color: #262a31;
+}
+
 .toolButtonGroup {
     display: flex;
     flex-direction: column;
